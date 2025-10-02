@@ -4,6 +4,7 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withSpring,
+  withTiming,
   interpolate,
   runOnJS,
 } from 'react-native-reanimated';
@@ -45,13 +46,15 @@ export default function SwipeCard({ venue, onSwipe, isActive, stackIndex, stackL
       const shouldSwipeLeft = translateX.value < -SWIPE_THRESHOLD;
 
       if (shouldSwipeRight) {
-        translateX.value = withSpring(SCREEN_WIDTH + 100, {}, () => {
-          runOnJS(onSwipe)('right');
-        });
+        // Fire callback immediately for instant state update
+        runOnJS(onSwipe)('right');
+        // Animate card off screen with faster timing for snappier UX
+        translateX.value = withTiming(SCREEN_WIDTH + 100, { duration: 250 });
       } else if (shouldSwipeLeft) {
-        translateX.value = withSpring(-SCREEN_WIDTH - 100, {}, () => {
-          runOnJS(onSwipe)('left');
-        });
+        // Fire callback immediately for instant state update
+        runOnJS(onSwipe)('left');
+        // Animate card off screen with faster timing for snappier UX
+        translateX.value = withTiming(-SCREEN_WIDTH - 100, { duration: 250 });
       } else {
         translateX.value = withSpring(0);
         translateY.value = withSpring(0);

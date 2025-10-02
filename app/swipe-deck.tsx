@@ -2,6 +2,7 @@ import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import { useEffect } from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import GradientBackground from '@/components/GradientBackground';
 import SwipeCard from '@/components/SwipeCard';
 import UserToggle from '@/components/UserToggle';
@@ -16,6 +17,7 @@ import { colors, typography, spacing, layout } from '@/constants/theme';
  */
 export default function SwipeDeck() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { venues, loading } = useVenues();
   const {
     currentUser,
@@ -54,7 +56,7 @@ export default function SwipeDeck() {
   if (loading) {
     return (
       <GradientBackground>
-        <View style={styles.container}>
+        <View style={[styles.container, { paddingTop: Math.max(spacing.xl, insets.top + spacing.lg) }]}>
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={colors.accent.cyan} />
             <Text style={styles.loadingText}>Loading venues...</Text>
@@ -71,7 +73,7 @@ export default function SwipeDeck() {
 
   return (
     <GradientBackground>
-      <View style={styles.container}>
+      <View style={[styles.container, { paddingTop: Math.max(spacing.xl, insets.top + spacing.lg) }]}>
         {/* Header with User Toggle and Progress */}
         <View style={styles.header}>
           <UserToggle currentUser={currentUser} onToggle={toggleUser} />
