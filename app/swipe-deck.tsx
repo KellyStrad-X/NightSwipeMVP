@@ -74,12 +74,9 @@ export default function SwipeDeck() {
   return (
     <GradientBackground>
       <View style={[styles.container, { paddingTop: Math.max(spacing.xl, insets.top + spacing.lg) }]}>
-        {/* Header with User Toggle and Progress */}
+        {/* Header with User Toggle */}
         <View style={styles.header}>
           <UserToggle currentUser={currentUser} onToggle={toggleUser} />
-          <Text style={styles.progressText}>
-            {currentUser === 'A' ? progress.userA : progress.userB} / {progress.total}
-          </Text>
         </View>
 
         {/* Card Stack */}
@@ -173,14 +170,9 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: spacing.lg,
-  },
-  progressText: {
-    fontSize: typography.size.lg,
-    fontWeight: typography.weight.semibold,
-    color: colors.accent.cyan,
+    marginBottom: spacing.xl,
   },
   cardContainer: {
     flex: 1,

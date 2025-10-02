@@ -7,6 +7,7 @@ import Animated, {
   withTiming,
   interpolate,
   runOnJS,
+  Easing,
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { Venue, getPriceLevelDisplay } from '@/data/mockVenues';
@@ -48,13 +49,19 @@ export default function SwipeCard({ venue, onSwipe, isActive, stackIndex, stackL
       if (shouldSwipeRight) {
         // Fire callback immediately for instant state update
         runOnJS(onSwipe)('right');
-        // Animate card off screen with faster timing for snappier UX
-        translateX.value = withTiming(SCREEN_WIDTH + 100, { duration: 250 });
+        // Animate card off screen with smooth easing for polished feel
+        translateX.value = withTiming(SCREEN_WIDTH + 100, {
+          duration: 350,
+          easing: Easing.out(Easing.cubic)
+        });
       } else if (shouldSwipeLeft) {
         // Fire callback immediately for instant state update
         runOnJS(onSwipe)('left');
-        // Animate card off screen with faster timing for snappier UX
-        translateX.value = withTiming(-SCREEN_WIDTH - 100, { duration: 250 });
+        // Animate card off screen with smooth easing for polished feel
+        translateX.value = withTiming(-SCREEN_WIDTH - 100, {
+          duration: 350,
+          easing: Easing.out(Easing.cubic)
+        });
       } else {
         translateX.value = withSpring(0);
         translateY.value = withSpring(0);
@@ -68,25 +75,50 @@ export default function SwipeCard({ venue, onSwipe, isActive, stackIndex, stackL
     // Aggressive opacity reduction to eliminate ghosting: only next card is slightly visible
     // Guardrail: if this is the only card left (stackLength === 1), keep it fully visible
     const isTrailingCard = stackLength === 1;
-    const scale = isActive || isTrailingCard ? 1 : 0.92 - stackIndex * 0.04;
-    const opacity = isActive || isTrailingCard ? 1 : stackIndex === 1 ? 0.08 : 0;
-    const stackOffset = stackIndex * 12; // Push inactive cards down more noticeably
+    const baseScale = isActive || isTrailingCard ? 1 : 0.92 - stackIndex * 0.04;
+    const baseOpacity = isActive || isTrailingCard ? 1 : stackIndex === 1 ? 0.08 : 0;
+    const baseStackOffset = stackIndex * 12; // Push inactive cards down more noticeably
+
+    // Trailing card motion: as active card moves, next card slides up slightly
+    // Only apply to the immediate next card (stackIndex === 1)
+    let adjustedScale = baseScale;
+    let adjustedOffset = baseStackOffset;
+
+    if (!isActive && stackIndex === 1) {
+      // Calculate progress based on how far the active card has moved
+      const swipeProgress = Math.abs(translateX.value) / SWIPE_THRESHOLD;
+      const clampedProgress = Math.min(swipeProgress, 1);
+
+      // Slide up and scale up slightly as the active card moves
+      adjustedOffset = interpolate(clampedProgress, [0, 1], [baseStackOffset, 0]);
+      adjustedScale = interpolate(clampedProgress, [0, 1], [baseScale, 0.96]);
+    }
 
     return {
       transform: [
         { translateX: translateX.value },
-        { translateY: translateY.value + stackOffset },
-        { scale },
+        { translateY: translateY.value + adjustedOffset },
+        { scale: adjustedScale },
         { rotate: `${rotation}deg` },
       ],
-      opacity,
+      opacity: baseOpacity,
       zIndex: 3 - stackIndex, // Active card (stackIndex 0) gets zIndex 3, etc.
     };
   });
 
   const likeStampStyle = useAnimatedStyle(() => {
-    const opacity = interpolate(translateX.value, [0, SWIPE_THRESHOLD], [0, 1]);
-    const scale = interpolate(translateX.value, [0, SWIPE_THRESHOLD], [0.5, 1]);
+    // Show stamp earlier: reach 60% opacity at 40% of threshold, 100% at threshold
+    const opacity = interpolate(
+      translateX.value,
+      [0, SWIPE_THRESHOLD * 0.4, SWIPE_THRESHOLD],
+      [0, 0.6, 1]
+    );
+    // More pronounced scale: start smaller and slightly overshoot
+    const scale = interpolate(
+      translateX.value,
+      [0, SWIPE_THRESHOLD * 0.4, SWIPE_THRESHOLD],
+      [0.7, 1, 1.1]
+    );
 
     return {
       opacity,
@@ -95,8 +127,18 @@ export default function SwipeCard({ venue, onSwipe, isActive, stackIndex, stackL
   });
 
   const nopeStampStyle = useAnimatedStyle(() => {
-    const opacity = interpolate(translateX.value, [-SWIPE_THRESHOLD, 0], [1, 0]);
-    const scale = interpolate(translateX.value, [-SWIPE_THRESHOLD, 0], [1, 0.5]);
+    // Show stamp earlier: reach 60% opacity at 40% of threshold, 100% at threshold
+    const opacity = interpolate(
+      translateX.value,
+      [-SWIPE_THRESHOLD, -SWIPE_THRESHOLD * 0.4, 0],
+      [1, 0.6, 0]
+    );
+    // More pronounced scale: start smaller and slightly overshoot
+    const scale = interpolate(
+      translateX.value,
+      [-SWIPE_THRESHOLD, -SWIPE_THRESHOLD * 0.4, 0],
+      [1.1, 1, 0.7]
+    );
 
     return {
       opacity,
