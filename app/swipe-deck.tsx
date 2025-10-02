@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ActivityIndicator, Image } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, Image, Dimensions } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import { useEffect } from 'react';
@@ -160,6 +160,14 @@ export default function SwipeDeck() {
   );
 }
 
+const SCREEN_WIDTH = Dimensions.get('window').width;
+// Logo aspect ratio from cropped asset (1012 × 348)
+const LOGO_ASPECT_RATIO = 348 / 1012;
+// Calculate logo width as 82% of card width (card is SCREEN_WIDTH - spacing.lg * 2)
+const CARD_WIDTH = SCREEN_WIDTH - spacing.lg * 2;
+const LOGO_WIDTH = CARD_WIDTH * 0.82;
+const LOGO_HEIGHT = LOGO_WIDTH * LOGO_ASPECT_RATIO;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -194,8 +202,8 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   logo: {
-    width: 120,
-    height: 120,
+    width: LOGO_WIDTH,
+    height: LOGO_HEIGHT,
   },
   completedContainer: {
     alignItems: 'center',
