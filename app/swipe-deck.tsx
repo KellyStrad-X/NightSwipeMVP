@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, Image } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import { useEffect } from 'react';
@@ -122,6 +122,15 @@ export default function SwipeDeck() {
           )}
         </View>
 
+        {/* NightSwipe Logo */}
+        <View style={styles.logoContainer}>
+          <Image
+            source={require('@/assets/shared/NightSwipe-Logo-1024.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+        </View>
+
         {/* Instructions / Actions */}
         <View style={styles.footer}>
           {!isCurrentUserComplete && (
@@ -179,6 +188,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
+  },
+  logoContainer: {
+    alignItems: 'center',
+    marginBottom: spacing.lg,
+  },
+  logo: {
+    width: 120,
+    height: 120,
   },
   completedContainer: {
     alignItems: 'center',

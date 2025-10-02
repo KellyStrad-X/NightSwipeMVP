@@ -27,14 +27,23 @@ interface SwipeCardProps {
 export default function SwipeCard({ venue, onSwipe, isActive, stackIndex, stackLength }: SwipeCardProps) {
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
+  const promotionProgress = useSharedValue(0);
 
-  // Reset position when card becomes inactive (prevents stale gesture positions)
+  // Detect when card transitions from inactive to active (promotion animation)
   useEffect(() => {
-    if (!isActive) {
+    if (isActive && stackIndex === 0) {
+      // Animate from stacked position to active position
+      promotionProgress.value = withTiming(1, {
+        duration: 350,
+        easing: Easing.out(Easing.cubic),
+      });
+    } else if (!isActive) {
+      // Reset for next potential promotion
+      promotionProgress.value = 0;
       translateX.value = 0;
       translateY.value = 0;
     }
-  }, [isActive, translateX, translateY]);
+  }, [isActive, stackIndex, promotionProgress, translateX, translateY]);
 
   const panGesture = Gesture.Pan()
     .enabled(isActive)
@@ -83,6 +92,7 @@ export default function SwipeCard({ venue, onSwipe, isActive, stackIndex, stackL
     // Only apply to the immediate next card (stackIndex === 1)
     let adjustedScale = baseScale;
     let adjustedOffset = baseStackOffset;
+    let adjustedOpacity = baseOpacity;
 
     if (!isActive && stackIndex === 1) {
       // Calculate progress based on how far the active card has moved
@@ -94,6 +104,18 @@ export default function SwipeCard({ venue, onSwipe, isActive, stackIndex, stackL
       adjustedScale = interpolate(clampedProgress, [0, 1], [baseScale, 0.96]);
     }
 
+    // Promotion animation: when card becomes active, smoothly transition from stacked position
+    if (promotionProgress.value > 0 && promotionProgress.value < 1) {
+      // Animate from previous stacked position (stackIndex 1 equivalent) to active
+      const stackedScale = 0.92;
+      const stackedOffset = 12;
+      const stackedOpacity = 0.08;
+
+      adjustedScale = interpolate(promotionProgress.value, [0, 1], [stackedScale, 1]);
+      adjustedOffset = interpolate(promotionProgress.value, [0, 1], [stackedOffset, 0]);
+      adjustedOpacity = interpolate(promotionProgress.value, [0, 1], [stackedOpacity, 1]);
+    }
+
     return {
       transform: [
         { translateX: translateX.value },
@@ -101,7 +123,7 @@ export default function SwipeCard({ venue, onSwipe, isActive, stackIndex, stackL
         { scale: adjustedScale },
         { rotate: `${rotation}deg` },
       ],
-      opacity: baseOpacity,
+      opacity: adjustedOpacity,
       zIndex: 3 - stackIndex, // Active card (stackIndex 0) gets zIndex 3, etc.
     };
   });
@@ -199,7 +221,7 @@ const styles = StyleSheet.create({
   card: {
     position: 'absolute',
     width: SCREEN_WIDTH - spacing.lg * 2,
-    height: '80%',
+    height: '88%',
     backgroundColor: colors.surface.card,
     borderRadius: borderRadius.xl,
     overflow: 'hidden',
