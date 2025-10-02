@@ -1,4 +1,5 @@
 import { View, Text, StyleSheet, Image, Dimensions } from 'react-native';
+import { useEffect } from 'react';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -17,11 +18,21 @@ interface SwipeCardProps {
   venue: Venue;
   onSwipe: (direction: 'left' | 'right') => void;
   isActive: boolean;
+  stackIndex: number; // 0 = active/top, 1 = second, 2 = third
+  stackLength: number; // Total cards in current stack (1-3)
 }
 
-export default function SwipeCard({ venue, onSwipe, isActive }: SwipeCardProps) {
+export default function SwipeCard({ venue, onSwipe, isActive, stackIndex, stackLength }: SwipeCardProps) {
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
+
+  // Reset position when card becomes inactive (prevents stale gesture positions)
+  useEffect(() => {
+    if (!isActive) {
+      translateX.value = 0;
+      translateY.value = 0;
+    }
+  }, [isActive, translateX, translateY]);
 
   const panGesture = Gesture.Pan()
     .enabled(isActive)
@@ -50,13 +61,23 @@ export default function SwipeCard({ venue, onSwipe, isActive }: SwipeCardProps) 
   const animatedStyle = useAnimatedStyle(() => {
     const rotation = interpolate(translateX.value, [-SCREEN_WIDTH, 0, SCREEN_WIDTH], [-30, 0, 30]);
 
+    // Stack effect: inactive cards have reduced scale, opacity, and vertical offset
+    // Aggressive opacity reduction to eliminate ghosting: only next card is slightly visible
+    // Guardrail: if this is the only card left (stackLength === 1), keep it fully visible
+    const isTrailingCard = stackLength === 1;
+    const scale = isActive || isTrailingCard ? 1 : 0.92 - stackIndex * 0.04;
+    const opacity = isActive || isTrailingCard ? 1 : stackIndex === 1 ? 0.08 : 0;
+    const stackOffset = stackIndex * 12; // Push inactive cards down more noticeably
+
     return {
       transform: [
         { translateX: translateX.value },
-        { translateY: translateY.value },
+        { translateY: translateY.value + stackOffset },
+        { scale },
         { rotate: `${rotation}deg` },
       ],
-      opacity: isActive ? 1 : 0.5,
+      opacity,
+      zIndex: 3 - stackIndex, // Active card (stackIndex 0) gets zIndex 3, etc.
     };
   });
 
@@ -82,7 +103,7 @@ export default function SwipeCard({ venue, onSwipe, isActive }: SwipeCardProps) 
 
   return (
     <GestureDetector gesture={panGesture}>
-      <Animated.View style={[styles.card, animatedStyle]}>
+      <Animated.View style={[styles.card, animatedStyle]} pointerEvents={isActive ? 'auto' : 'none'}>
         {/* Venue Image */}
         <Image source={{ uri: venue.photo_url }} style={styles.image} resizeMode="cover" />
 

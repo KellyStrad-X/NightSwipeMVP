@@ -96,15 +96,29 @@ export default function SwipeDeck() {
             </View>
           ) : (
             <>
-              {/* Render next 3 cards for stack effect */}
-              {venues.slice(currentUserSwipes, currentUserSwipes + 3).map((venue, index) => (
-                <SwipeCard
-                  key={`${venue.id}-${currentUser}-${index}`}
-                  venue={venue}
-                  onSwipe={handleSwipe}
-                  isActive={index === 0}
-                />
-              ))}
+              {/* Render next 3 cards for stack effect - reversed so active card renders last (on top) */}
+              {(() => {
+                const upcomingCards = venues.slice(currentUserSwipes, currentUserSwipes + 3);
+                const stackLength = upcomingCards.length;
+
+                return upcomingCards
+                  .slice()
+                  .reverse()
+                  .map((venue, index) => {
+                    const stackIndex = stackLength - 1 - index;
+                    const isActive = stackIndex === 0;
+                    return (
+                      <SwipeCard
+                        key={`${venue.id}-${currentUser}-${stackIndex}`}
+                        venue={venue}
+                        onSwipe={handleSwipe}
+                        isActive={isActive}
+                        stackIndex={stackIndex}
+                        stackLength={stackLength}
+                      />
+                    );
+                  });
+              })()}
             </>
           )}
         </View>
