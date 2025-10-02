@@ -9,7 +9,7 @@ import UserToggle from '@/components/UserToggle';
 import Button from '@/components/Button';
 import { useVenues } from '@/hooks/useVenues';
 import { useSwipeState } from '@/hooks/useSwipeState';
-import { colors, typography, spacing, layout } from '@/constants/theme';
+import { colors, typography, spacing, layout, borderRadius } from '@/constants/theme';
 
 /**
  * SwipeDeck Screen - Phase 2 Implementation
@@ -124,11 +124,13 @@ export default function SwipeDeck() {
 
         {/* NightSwipe Logo */}
         <View style={styles.logoContainer}>
-          <Image
-            source={require('@/assets/shared/NightSwipe-Logo-1024.png')}
-            style={styles.logo}
-            resizeMode="contain"
-          />
+          <View style={styles.logoSign}>
+            <Image
+              source={require('@/assets/shared/NightSwipe-Logo-1024.png')}
+              style={styles.logo}
+              resizeMode="contain"
+            />
+          </View>
         </View>
 
         {/* Instructions / Actions */}
@@ -199,7 +201,21 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     alignItems: 'center',
+    marginTop: spacing.md,
     marginBottom: spacing.lg,
+  },
+  logoSign: {
+    backgroundColor: 'rgba(2, 18, 40, 0.65)',
+    borderRadius: borderRadius.xl,
+    borderWidth: 1,
+    borderColor: 'rgba(34, 211, 238, 0.2)',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    shadowColor: colors.accent.cyan,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.4,
+    shadowRadius: 16,
+    elevation: 8,
   },
   logo: {
     width: LOGO_WIDTH,

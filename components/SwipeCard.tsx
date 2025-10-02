@@ -221,7 +221,7 @@ const styles = StyleSheet.create({
   card: {
     position: 'absolute',
     width: SCREEN_WIDTH - spacing.lg * 2,
-    height: '88%',
+    height: '94%',
     backgroundColor: colors.surface.card,
     borderRadius: borderRadius.xl,
     overflow: 'hidden',
@@ -256,7 +256,8 @@ const styles = StyleSheet.create({
   },
   infoOverlay: {
     flex: 1,
-    padding: spacing.lg,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.lg,
     justifyContent: 'space-between',
   },
   nameRow: {
