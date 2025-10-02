@@ -8,7 +8,7 @@ export const colors = {
   background: {
     primary: '#0f172a', // Dark navy (slate-900)
     secondary: '#1e293b', // Lighter navy (slate-800)
-    gradient: ['#0f172a', '#1e293b', '#334155'], // Dark gradient
+    gradient: ['#0f172a', '#1e293b', '#334155'] as const, // Dark gradient
   },
 
   // Brand Accents
