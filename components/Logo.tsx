@@ -1,41 +1,17 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, ViewStyle, TextStyle } from 'react-native';
 import { colors, typography, spacing } from '@/constants/theme';
 
 interface LogoProps {
   size?: 'small' | 'medium' | 'large';
 }
 
-/**
- * Placeholder logo component
- * TODO: Replace with actual logo asset when provided
- */
-export default function Logo({ size = 'large' }: LogoProps) {
-  const sizeStyles = styles[size];
+type SizeVariant = {
+  container: ViewStyle;
+  text: TextStyle;
+  brandText: TextStyle;
+};
 
-  return (
-    <View style={[styles.container, sizeStyles.container]}>
-      <Text style={[styles.text, sizeStyles.text]}>🌙</Text>
-      <Text style={[styles.brandText, sizeStyles.brandText]}>NightSwipe</Text>
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  text: {
-    textAlign: 'center',
-  },
-  brandText: {
-    fontWeight: typography.weight.extrabold,
-    color: colors.accent.cyan,
-    marginTop: spacing.sm,
-    letterSpacing: 1,
-  },
-
-  // Size variants
+const sizeVariants: Record<'small' | 'medium' | 'large', SizeVariant> = {
   small: {
     container: {
       gap: spacing.xs,
@@ -68,5 +44,36 @@ const styles = StyleSheet.create({
     brandText: {
       fontSize: typography.size['4xl'],
     },
+  },
+};
+
+/**
+ * Placeholder logo component
+ * TODO: Replace with actual logo asset when provided
+ */
+export default function Logo({ size = 'large' }: LogoProps) {
+  const sizeStyles = sizeVariants[size];
+
+  return (
+    <View style={[styles.container, sizeStyles.container]}>
+      <Text style={[styles.text, sizeStyles.text]}>🌙</Text>
+      <Text style={[styles.brandText, sizeStyles.brandText]}>NightSwipe</Text>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  text: {
+    textAlign: 'center',
+  },
+  brandText: {
+    fontWeight: typography.weight.extrabold,
+    color: colors.accent.cyan,
+    marginTop: spacing.sm,
+    letterSpacing: 1,
   },
 });
