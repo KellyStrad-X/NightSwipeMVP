@@ -221,7 +221,7 @@ const styles = StyleSheet.create({
   card: {
     position: 'absolute',
     width: SCREEN_WIDTH - spacing.lg * 2,
-    height: '94%',
+    height: '96%',
     backgroundColor: colors.surface.card,
     borderRadius: borderRadius.xl,
     overflow: 'hidden',

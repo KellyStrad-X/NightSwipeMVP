@@ -5,7 +5,6 @@ import { useEffect } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import GradientBackground from '@/components/GradientBackground';
 import SwipeCard from '@/components/SwipeCard';
-import UserToggle from '@/components/UserToggle';
 import Button from '@/components/Button';
 import { useVenues } from '@/hooks/useVenues';
 import { useSwipeState } from '@/hooks/useSwipeState';
@@ -73,10 +72,29 @@ export default function SwipeDeck() {
 
   return (
     <GradientBackground>
-      <View style={[styles.container, { paddingTop: Math.max(spacing.xl, insets.top + spacing.lg) }]}>
-        {/* Header with User Toggle */}
+      <View style={[styles.container, { paddingTop: Math.max(spacing.md, insets.top + spacing.sm) }]}>
+        {/* Header with NightSwipe Sign */}
         <View style={styles.header}>
-          <UserToggle currentUser={currentUser} onToggle={toggleUser} />
+          <View style={styles.signWrapper}>
+            {/* Bulbs positioned around the perimeter */}
+            <View style={[styles.bulb, styles.bulbTopLeft]} />
+            <View style={[styles.bulb, styles.bulbTopCenter]} />
+            <View style={[styles.bulb, styles.bulbTopRight]} />
+            <View style={[styles.bulb, styles.bulbMiddleRight]} />
+            <View style={[styles.bulb, styles.bulbBottomRight]} />
+            <View style={[styles.bulb, styles.bulbBottomCenter]} />
+            <View style={[styles.bulb, styles.bulbBottomLeft]} />
+            <View style={[styles.bulb, styles.bulbMiddleLeft]} />
+
+            {/* Sign plate */}
+            <View style={styles.logoSign}>
+              <Image
+                source={require('@/assets/shared/NightSwipe-Logo-1024.png')}
+                style={styles.logo}
+                resizeMode="contain"
+              />
+            </View>
+          </View>
         </View>
 
         {/* Card Stack */}
@@ -120,17 +138,6 @@ export default function SwipeDeck() {
               })()}
             </>
           )}
-        </View>
-
-        {/* NightSwipe Logo */}
-        <View style={styles.logoContainer}>
-          <View style={styles.logoSign}>
-            <Image
-              source={require('@/assets/shared/NightSwipe-Logo-1024.png')}
-              style={styles.logo}
-              resizeMode="contain"
-            />
-          </View>
         </View>
 
         {/* Instructions / Actions */}
@@ -191,7 +198,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: spacing.xl,
+    marginBottom: spacing.md,
   },
   cardContainer: {
     flex: 1,
@@ -199,10 +206,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     position: 'relative',
   },
-  logoContainer: {
-    alignItems: 'center',
-    marginTop: spacing.md,
-    marginBottom: spacing.lg,
+  signWrapper: {
+    position: 'relative',
   },
   logoSign: {
     backgroundColor: 'rgba(2, 18, 40, 0.65)',
@@ -220,6 +225,54 @@ const styles = StyleSheet.create({
   logo: {
     width: LOGO_WIDTH,
     height: LOGO_HEIGHT,
+  },
+  bulb: {
+    position: 'absolute',
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.accent.cyan,
+    shadowColor: colors.accent.cyan,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  bulbTopLeft: {
+    top: -4,
+    left: -4,
+  },
+  bulbTopCenter: {
+    top: -4,
+    left: '50%',
+    marginLeft: -4,
+  },
+  bulbTopRight: {
+    top: -4,
+    right: -4,
+  },
+  bulbMiddleRight: {
+    top: '50%',
+    right: -4,
+    marginTop: -4,
+  },
+  bulbBottomRight: {
+    bottom: -4,
+    right: -4,
+  },
+  bulbBottomCenter: {
+    bottom: -4,
+    left: '50%',
+    marginLeft: -4,
+  },
+  bulbBottomLeft: {
+    bottom: -4,
+    left: -4,
+  },
+  bulbMiddleLeft: {
+    top: '50%',
+    left: -4,
+    marginTop: -4,
   },
   completedContainer: {
     alignItems: 'center',
