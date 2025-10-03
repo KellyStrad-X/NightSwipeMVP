@@ -1,44 +1,165 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, Image, Dimensions } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
+import { useEffect } from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import GradientBackground from '@/components/GradientBackground';
+import SwipeCard from '@/components/SwipeCard';
 import Button from '@/components/Button';
-import { colors, typography, spacing, layout } from '@/constants/theme';
+import { useVenues } from '@/hooks/useVenues';
+import { useSwipeState } from '@/hooks/useSwipeState';
+import { colors, typography, spacing, layout, borderRadius } from '@/constants/theme';
 
 /**
- * SwipeDeck Screen - Placeholder
- * Full implementation in Phase 2
+ * SwipeDeck Screen - Phase 2 Implementation
+ * Tinder-style swipe interface with dual-user simulation
  */
 export default function SwipeDeck() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const { venues, loading } = useVenues();
+  const {
+    currentUser,
+    recordSwipe,
+    toggleUser,
+    resetSession,
+    isBothUsersComplete,
+    getProgress,
+  } = useSwipeState();
 
-  const handleNavigateToResult = () => {
-    router.push('/result');
+  const progress = getProgress(venues.length);
+  const bothComplete = isBothUsersComplete(venues.length);
+
+  // Auto-navigate to results when both users complete
+  useEffect(() => {
+    if (bothComplete && venues.length > 0) {
+      router.push('/result');
+    }
+  }, [bothComplete, venues.length, router]);
+
+  const handleSwipe = (direction: 'left' | 'right') => {
+    if (currentUserSwipes < venues.length) {
+      recordSwipe(venues[currentUserSwipes].id, direction);
+    }
+  };
+
+  const handleReset = () => {
+    resetSession();
   };
 
   const handleGoBack = () => {
     router.back();
   };
 
+  // Loading state
+  if (loading) {
+    return (
+      <GradientBackground>
+        <View style={[styles.container, { paddingTop: Math.max(spacing.xl, insets.top + spacing.lg) }]}>
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={colors.accent.cyan} />
+            <Text style={styles.loadingText}>Loading venues...</Text>
+          </View>
+          <StatusBar style="light" />
+        </View>
+      </GradientBackground>
+    );
+  }
+
+  // Get current user's swipe count
+  const currentUserSwipes = currentUser === 'A' ? progress.userA : progress.userB;
+  const isCurrentUserComplete = currentUserSwipes >= venues.length;
+
   return (
     <GradientBackground>
-      <View style={styles.container}>
-        <View style={styles.content}>
-          <Text style={styles.title}>Swipe Deck</Text>
-          <Text style={styles.subtitle}>Phase 2 - Coming Soon</Text>
-          <Text style={styles.description}>
-            This screen will display Tinder-style cards with venues. Users will swipe left (No) or
-            right (Yes) on each venue.
-          </Text>
+      <View style={[styles.container, { paddingTop: Math.max(spacing.md, insets.top + spacing.sm) }]}>
+        {/* Header with NightSwipe Sign */}
+        <View style={styles.header}>
+          <View style={styles.signWrapper}>
+            {/* Bulbs positioned around the perimeter */}
+            <View style={[styles.bulb, styles.bulbTopLeft]} />
+            <View style={[styles.bulb, styles.bulbTopCenter]} />
+            <View style={[styles.bulb, styles.bulbTopRight]} />
+            <View style={[styles.bulb, styles.bulbMiddleRight]} />
+            <View style={[styles.bulb, styles.bulbBottomRight]} />
+            <View style={[styles.bulb, styles.bulbBottomCenter]} />
+            <View style={[styles.bulb, styles.bulbBottomLeft]} />
+            <View style={[styles.bulb, styles.bulbMiddleLeft]} />
 
+            {/* Sign plate */}
+            <View style={styles.logoSign}>
+              <Image
+                source={require('@/assets/shared/NightSwipe-Logo-1024.png')}
+                style={styles.logo}
+                resizeMode="contain"
+              />
+            </View>
+          </View>
+        </View>
+
+        {/* Card Stack */}
+        <View style={styles.cardContainer}>
+          {isCurrentUserComplete ? (
+            <View style={styles.completedContainer}>
+              <Text style={styles.completedEmoji}>✓</Text>
+              <Text style={styles.completedTitle}>
+                {currentUser === 'A' ? 'User A' : 'User B'} Complete!
+              </Text>
+              <Text style={styles.completedSubtitle}>
+                {bothComplete
+                  ? 'Both users done! Finding matches...'
+                  : `Switch to User ${currentUser === 'A' ? 'B' : 'A'} to continue`}
+              </Text>
+            </View>
+          ) : (
+            <>
+              {/* Render next 3 cards for stack effect - reversed so active card renders last (on top) */}
+              {(() => {
+                const upcomingCards = venues.slice(currentUserSwipes, currentUserSwipes + 3);
+                const stackLength = upcomingCards.length;
+
+                return upcomingCards
+                  .slice()
+                  .reverse()
+                  .map((venue, index) => {
+                    const stackIndex = stackLength - 1 - index;
+                    const isActive = stackIndex === 0;
+                    return (
+                      <SwipeCard
+                        key={`${venue.id}-${currentUser}-${stackIndex}`}
+                        venue={venue}
+                        onSwipe={handleSwipe}
+                        isActive={isActive}
+                        stackIndex={stackIndex}
+                        stackLength={stackLength}
+                      />
+                    );
+                  });
+              })()}
+            </>
+          )}
+        </View>
+
+        {/* Instructions / Actions */}
+        <View style={styles.footer}>
+          {!isCurrentUserComplete && (
+            <Text style={styles.instructions}>
+              👈 Swipe left for No • Swipe right for Yes 👉
+            </Text>
+          )}
           <View style={styles.buttonContainer}>
             <Button
-              title="Simulate Match → Result"
-              onPress={handleNavigateToResult}
-              variant="primary"
+              title="Reset Session"
+              onPress={handleReset}
+              variant="outline"
               fullWidth
             />
-            <Button title="← Back to Landing" onPress={handleGoBack} variant="outline" fullWidth />
+            <Button
+              title="← Back to Landing"
+              onPress={handleGoBack}
+              variant="outline"
+              fullWidth
+            />
           </View>
         </View>
 
@@ -48,42 +169,141 @@ export default function SwipeDeck() {
   );
 }
 
+const SCREEN_WIDTH = Dimensions.get('window').width;
+// Logo aspect ratio from cropped asset (1012 × 348)
+const LOGO_ASPECT_RATIO = 348 / 1012;
+// Calculate logo width as 82% of card width (card is SCREEN_WIDTH - spacing.lg * 2)
+const CARD_WIDTH = SCREEN_WIDTH - spacing.lg * 2;
+const LOGO_WIDTH = CARD_WIDTH * 0.82;
+const LOGO_HEIGHT = LOGO_WIDTH * LOGO_ASPECT_RATIO;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: layout.screenPadding,
-    paddingTop: spacing['4xl'],
+    paddingTop: spacing.xl,
     paddingBottom: spacing['2xl'],
   },
-  content: {
+  loadingContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing.lg,
   },
-  title: {
-    fontSize: typography.size['4xl'],
+  loadingText: {
+    fontSize: typography.size.lg,
+    color: colors.text.secondary,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+  },
+  cardContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  signWrapper: {
+    position: 'relative',
+  },
+  logoSign: {
+    backgroundColor: 'rgba(2, 18, 40, 0.65)',
+    borderRadius: borderRadius.xl,
+    borderWidth: 1,
+    borderColor: 'rgba(34, 211, 238, 0.2)',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    shadowColor: colors.accent.cyan,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.4,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  logo: {
+    width: LOGO_WIDTH,
+    height: LOGO_HEIGHT,
+  },
+  bulb: {
+    position: 'absolute',
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.accent.cyan,
+    shadowColor: colors.accent.cyan,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  bulbTopLeft: {
+    top: -4,
+    left: -4,
+  },
+  bulbTopCenter: {
+    top: -4,
+    left: '50%',
+    marginLeft: -4,
+  },
+  bulbTopRight: {
+    top: -4,
+    right: -4,
+  },
+  bulbMiddleRight: {
+    top: '50%',
+    right: -4,
+    marginTop: -4,
+  },
+  bulbBottomRight: {
+    bottom: -4,
+    right: -4,
+  },
+  bulbBottomCenter: {
+    bottom: -4,
+    left: '50%',
+    marginLeft: -4,
+  },
+  bulbBottomLeft: {
+    bottom: -4,
+    left: -4,
+  },
+  bulbMiddleLeft: {
+    top: '50%',
+    left: -4,
+    marginTop: -4,
+  },
+  completedContainer: {
+    alignItems: 'center',
+    gap: spacing.lg,
+  },
+  completedEmoji: {
+    fontSize: 80,
+  },
+  completedTitle: {
+    fontSize: typography.size['3xl'],
     fontWeight: typography.weight.extrabold,
     color: colors.accent.cyan,
     textAlign: 'center',
   },
-  subtitle: {
-    fontSize: typography.size.xl,
-    fontWeight: typography.weight.semibold,
-    color: colors.accent.purple,
+  completedSubtitle: {
+    fontSize: typography.size.lg,
+    color: colors.text.secondary,
     textAlign: 'center',
+    maxWidth: 300,
   },
-  description: {
+  footer: {
+    gap: spacing.md,
+    marginTop: spacing.lg,
+  },
+  instructions: {
     fontSize: typography.size.base,
     color: colors.text.secondary,
     textAlign: 'center',
-    lineHeight: typography.size.base * typography.lineHeight.relaxed,
-    maxWidth: 320,
-    marginTop: spacing.md,
+    marginBottom: spacing.sm,
   },
   buttonContainer: {
-    width: '100%',
-    gap: spacing.md,
-    marginTop: spacing.xl,
+    gap: spacing.sm,
   },
 });
